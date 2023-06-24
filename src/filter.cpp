@@ -3,70 +3,61 @@
 fltr::fltr() : Node("quad_filter")
 {
 	// Setup publishers and subscribers
-	posSub = this->create_subscription<geometry_msgs::msg::Vector3>("/pos", 10, std::bind(&fltr::posSubCb, this, std::placeholders::_1));
-	angVelSub = this->create_subscription<geometry_msgs::msg::Vector3>("/angVel", 10, std::bind(&fltr::angVelSubCb, this, std::placeholders::_1));
-	linAccSub = this->create_subscription<geometry_msgs::msg::Vector3>("/linAcc", 10, std::bind(&fltr::linAccSubCb, this, std::placeholders::_1));
-	cmplFltrPub = this->create_publisher<geometry_msgs::msg::Vector3>("/pose", 10);
+	imuGyroRawSub = this->create_subscription<geometry_msgs::msg::Vector3>("imu/gyroRaw", 10, std::bind(&fltr::imuGyroRawSubCb, this, std::placeholders::_1));
+	imuAcclRawSub = this->create_subscription<geometry_msgs::msg::Vector3>("imu/acclRaw", 10, std::bind(&fltr::imuAcclRawSubCb, this, std::placeholders::_1));
+	cmplFltrPosePub = this->create_publisher<geometry_msgs::msg::Vector3>("cmplFltr/pose", 10);
 
 	// Initialize the data
-	posMsg.x = 0;
-	posMsg.y = 0;
-	posMsg.z = 0;
-	angVelMsg.x = 0;
-	angVelMsg.y = 0;
-	angVelMsg.z = 0;
-	linAccMsg.x = 0;
-	linAccMsg.y = 0;
-	linAccMsg.z = -1;
-	cmplFltrMsg.x = 0;
-	cmplFltrMsg.y = 0;
-	cmplFltrMsg.z = 0;
+	imuGyroRawMsg.x = 0;
+	imuGyroRawMsg.y = 0;
+	imuGyroRawMsg.z = 0;
+	imuAcclRawMsg.x = 0;
+	imuAcclRawMsg.y = 0;
+	imuAcclRawMsg.z = -1;
+	cmplFltrPoseMsg.x = 0;
+	cmplFltrPoseMsg.y = 0;
+	cmplFltrPoseMsg.z = 0;
 
 	// Send out initial values
-	cmplFltrPub->publish(cmplFltrMsg);
+	cmplFltrPosePub->publish(cmplFltrPoseMsg);
 
 	// Set-up the publisher callback, it is assumed that the sensor sampling rate is 0.01s
 	imuDt = 0.01;
 	alf = 0.02;
-	cmplFltrPubFunTmr = this->create_wall_timer(std::chrono::milliseconds(int(imuDt * 1000)), std::bind(&fltr::cmplFltrPubFun, this));
+	cmplFltrPosePubFunTmr = this->create_wall_timer(std::chrono::milliseconds(int(imuDt * 1000)), std::bind(&fltr::cmplFltrPosePubFun, this));
 }
 
-void fltr::posSubCb(const geometry_msgs::msg::Vector3 pos)
+void fltr::imuGyroRawSubCb(const geometry_msgs::msg::Vector3 imuGyroRaw)
 {
-	this->posMsg = pos;
+	this->imuGyroRawMsg = imuGyroRaw;
 }
 
-void fltr::angVelSubCb(const geometry_msgs::msg::Vector3 angVel)
+void fltr::imuAcclRawSubCb(const geometry_msgs::msg::Vector3 imuAcclRaw)
 {
-	this->angVelMsg = angVel;
+	this->imuAcclRawMsg = imuAcclRaw;
 }
 
-void fltr::linAccSubCb(const geometry_msgs::msg::Vector3 linAcc)
-{
-	this->linAccMsg = linAcc;
-}
-
-void fltr::cmplFltrPubFun()
+void fltr::cmplFltrPosePubFun()
 {
 	float pitchFromAccel = 0;
 	float rollFromAccel = 0;
 
 	// Extract roll and pitch from the accelerometer
 	// These formulae assume that z-axis point away from the earth
-	pitchFromAccel = atan2(linAccMsg.x, sqrt(pow(linAccMsg.y, 2) + pow(linAccMsg.z, 2)));
-	rollFromAccel = atan2(-linAccMsg.y, sqrt(pow(linAccMsg.x, 2) + pow(linAccMsg.z, 2)));
+	pitchFromAccel = atan2(imuAcclRawMsg.x, sqrt(pow(imuAcclRawMsg.y, 2) + pow(imuAcclRawMsg.z, 2)));
+	rollFromAccel = atan2(-imuAcclRawMsg.y, sqrt(pow(imuAcclRawMsg.x, 2) + pow(imuAcclRawMsg.z, 2)));
 	// rollFromAccel = atan2(accelerometer.y, accelerometer.z);
 
 	// Complimentary Filter, fuse accelerometer data with gyro integration
 	// angle = (1 - alf) * (angle + gyroscope * dt) + alf * accelerometer
-	cmplFltrMsg.x = (1 - alf) * (cmplFltrMsg.x + (angVelMsg.x * imuDt)) + alf * rollFromAccel;
-	cmplFltrMsg.y = (1 - alf) * (cmplFltrMsg.y + (angVelMsg.y * imuDt)) + alf * pitchFromAccel;
+	cmplFltrPoseMsg.x = (1 - alf) * (cmplFltrPoseMsg.x + (imuGyroRawMsg.x * imuDt)) + alf * rollFromAccel;
+	cmplFltrPoseMsg.y = (1 - alf) * (cmplFltrPoseMsg.y + (imuGyroRawMsg.y * imuDt)) + alf * pitchFromAccel;
 
 	// Yaw cannot be determined from accelerometer, so only gyro is used
-	cmplFltrMsg.z += angVelMsg.z * imuDt;
+	cmplFltrPoseMsg.z += imuGyroRawMsg.z * imuDt;
 
 	// Publish the filtered data
-	cmplFltrPub->publish(cmplFltrMsg);
+	cmplFltrPosePub->publish(cmplFltrPoseMsg);
 
 	// The above code returns the angle in RADIANS
 }
