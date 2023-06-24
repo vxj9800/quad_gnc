@@ -52,6 +52,7 @@ void fltr::cmplFltrPubFun()
 	float rollFromAccel = 0;
 
 	// Extract roll and pitch from the accelerometer
+	// These formulae assume that z-axis point away from the earth
 	pitchFromAccel = atan2(linAccMsg.x, sqrt(pow(linAccMsg.y, 2) + pow(linAccMsg.z, 2)));
 	rollFromAccel = atan2(-linAccMsg.y, sqrt(pow(linAccMsg.x, 2) + pow(linAccMsg.z, 2)));
 	// rollFromAccel = atan2(accelerometer.y, accelerometer.z);
