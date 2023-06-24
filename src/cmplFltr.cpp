@@ -1,10 +1,10 @@
-#include "filter.hpp"
+#include "cmplFltr.hpp"
 
-fltr::fltr() : Node("quad_filter")
+cmplFltr::cmplFltr() : Node("complementaryFilter")
 {
 	// Setup publishers and subscribers
-	imuGyroRawSub = this->create_subscription<geometry_msgs::msg::Vector3>("imu/gyroRaw", 10, std::bind(&fltr::imuGyroRawSubCb, this, std::placeholders::_1));
-	imuAcclRawSub = this->create_subscription<geometry_msgs::msg::Vector3>("imu/acclRaw", 10, std::bind(&fltr::imuAcclRawSubCb, this, std::placeholders::_1));
+	imuGyroRawSub = this->create_subscription<geometry_msgs::msg::Vector3>("imu/gyroRaw", 10, std::bind(&cmplFltr::imuGyroRawSubCb, this, std::placeholders::_1));
+	imuAcclRawSub = this->create_subscription<geometry_msgs::msg::Vector3>("imu/acclRaw", 10, std::bind(&cmplFltr::imuAcclRawSubCb, this, std::placeholders::_1));
 	cmplFltrPosePub = this->create_publisher<geometry_msgs::msg::Vector3>("cmplFltr/pose", 10);
 
 	// Initialize the data
@@ -24,20 +24,20 @@ fltr::fltr() : Node("quad_filter")
 	// Set-up the publisher callback, it is assumed that the sensor sampling rate is 0.01s
 	imuDt = 0.01;
 	alf = 0.02;
-	cmplFltrPosePubFunTmr = this->create_wall_timer(std::chrono::milliseconds(int(imuDt * 1000)), std::bind(&fltr::cmplFltrPosePubFun, this));
+	cmplFltrPosePubFunTmr = this->create_wall_timer(std::chrono::milliseconds(int(imuDt * 1000)), std::bind(&cmplFltr::cmplFltrPosePubFun, this));
 }
 
-void fltr::imuGyroRawSubCb(const geometry_msgs::msg::Vector3 imuGyroRaw)
+void cmplFltr::imuGyroRawSubCb(const geometry_msgs::msg::Vector3 imuGyroRaw)
 {
 	this->imuGyroRawMsg = imuGyroRaw;
 }
 
-void fltr::imuAcclRawSubCb(const geometry_msgs::msg::Vector3 imuAcclRaw)
+void cmplFltr::imuAcclRawSubCb(const geometry_msgs::msg::Vector3 imuAcclRaw)
 {
 	this->imuAcclRawMsg = imuAcclRaw;
 }
 
-void fltr::cmplFltrPosePubFun()
+void cmplFltr::cmplFltrPosePubFun()
 {
 	float pitchFromAccel = 0;
 	float rollFromAccel = 0;
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 	rclcpp::init(argc, argv);
 
 	// Initialize filter node
-	rclcpp::Node::SharedPtr filter = std::make_shared<fltr>();
+	rclcpp::Node::SharedPtr filter = std::make_shared<cmplFltr>();
 
 	// Create an executor
 	rclcpp::executors::MultiThreadedExecutor exec;

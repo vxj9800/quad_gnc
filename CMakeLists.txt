@@ -34,20 +34,20 @@ target_link_libraries(kbInput
 )
 ament_target_dependencies(kbInput rclcpp std_msgs)
 
-# Add filter node as a target
-add_executable(filter
-  src/filter.cpp
+# Add complementary filter node as a target
+add_executable(cmplFltr
+  src/cmplFltr.cpp
 )
-target_include_directories(filter PUBLIC
+target_include_directories(cmplFltr PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(filter rclcpp std_msgs geometry_msgs)
+ament_target_dependencies(cmplFltr rclcpp std_msgs geometry_msgs)
 
 install(TARGETS
   controller
   kbInput
-  filter
+  cmplFltr
   DESTINATION lib/${PROJECT_NAME})
 
 if(BUILD_TESTING)

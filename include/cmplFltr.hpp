@@ -9,10 +9,10 @@
 #ifndef __QUAD_GNC_FILTER__
 #define __QUAD_GNC_FILTER__
 
-class fltr : public rclcpp::Node
+class cmplFltr : public rclcpp::Node
 {
 public:
-    fltr();
+    cmplFltr();
 
 private:
     // Publishers, subscribers and variables for quadSim
