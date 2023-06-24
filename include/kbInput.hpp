@@ -11,6 +11,10 @@
 #ifndef __QUAD_GNC_KBINPUT__
 #define __QUAD_GNC_KBINPUT__
 
+/**
+ * @brief This class is a parallel of RC input where the input is taken from a keyboard and the values are published as RC signal.
+ * 
+*/
 class kbInput : public rclcpp::Node
 {
 public:

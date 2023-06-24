@@ -3,11 +3,11 @@
 kbInput::kbInput() : Node("kbInput")
 {
 	// Create the publishers
-	roll_pub = this->create_publisher<std_msgs::msg::UInt16>("roll", 10);
-	pitch_pub = this->create_publisher<std_msgs::msg::UInt16>("pitch", 10);
-	yaw_pub = this->create_publisher<std_msgs::msg::UInt16>("yaw", 10);
-	thrust_pub = this->create_publisher<std_msgs::msg::UInt16>("thrust", 10);
-	arm_pub = this->create_publisher<std_msgs::msg::Bool>("arm", 10);
+	roll_pub = this->create_publisher<std_msgs::msg::UInt16>("rc/roll", 10);
+	pitch_pub = this->create_publisher<std_msgs::msg::UInt16>("rc/pitch", 10);
+	yaw_pub = this->create_publisher<std_msgs::msg::UInt16>("rc/yaw", 10);
+	thrust_pub = this->create_publisher<std_msgs::msg::UInt16>("rc/thrust", 10);
+	arm_pub = this->create_publisher<std_msgs::msg::Bool>("rc/arm", 10);
 
 	// Set default message values
 	roll.data = 1500;
