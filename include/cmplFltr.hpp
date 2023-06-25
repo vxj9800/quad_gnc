@@ -21,14 +21,14 @@ private:
     double imuDt, alf; // IMU sampling rate
 
     // Publishers for controller node
-    rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr cmplFltrPosePub;
-    rclcpp::TimerBase::SharedPtr cmplFltrPosePubFunTmr;
-    geometry_msgs::msg::Vector3 cmplFltrPoseMsg;
+    rclcpp::Publisher<geometry_msgs::msg::Vector3>::SharedPtr cmplFltrAttitudePub;
+    rclcpp::TimerBase::SharedPtr cmplFltrAttitudePubFunTmr;
+    geometry_msgs::msg::Vector3 cmplFltrAttitudeMsg;
 
     // Define callback functions for pubs and subs
     void imuGyroRawSubCb(const geometry_msgs::msg::Vector3 imuGyroRaw);
     void imuAcclRawSubCb(const geometry_msgs::msg::Vector3 imuAcclRaw);
-    void cmplFltrPosePubFun();
+    void cmplFltrAttitudePubFun();
 };
 
 #endif // __QUAD_GNC_FILTER__

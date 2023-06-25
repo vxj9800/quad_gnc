@@ -59,13 +59,13 @@ void kbInput::kbInputPublish()
 		rcPitch.data += (rcPitch.data < 2000) ? 10 : 0;
 		break;
 	case 'j':
-		rcRoll.data += (rcRoll.data < 2000) ? 10 : 0;
+		rcRoll.data -= (rcRoll.data > 1000) ? 10 : 0;
 		break;
 	case 'k':
 		rcPitch.data -= (rcPitch.data > 1000) ? 10 : 0;
 		break;
 	case 'l':
-		rcRoll.data -= (rcRoll.data > 1000) ? 10 : 0;
+		rcRoll.data += (rcRoll.data < 2000) ? 10 : 0;
 		break;
 	case 'r':
 		if (rcRoll.data == 1500 && rcPitch.data == 1500 && rcYaw.data == 1500 && rcThrust.data == 1000)

@@ -19,7 +19,7 @@ target_include_directories(controller PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(controller rclcpp std_msgs)
+ament_target_dependencies(controller rclcpp std_msgs geometry_msgs)
 
 # Add kbInput node as a target
 add_executable(kbInput
