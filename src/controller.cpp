@@ -42,8 +42,8 @@ void anglCntrl::timeSubCb(const builtin_interfaces::msg::Time timeMsg)
 	float eR_dot, eP_dot, eY_dot, eT_dot; // Roll, pitch, yaw and thrust error rates
 
 	// Define PID gains
-	float rP = 0.005, pP = 0.005, yP = 0, tP = 0.8; // Proportional gains
-	float rD = 0.01, pD = 0.01, yD = 0, tD = 0; // Derivative gains
+	float rP = 0.0005, pP = 0.0005, yP = 0, tP = 0.8; // Proportional gains
+	float rD = 0.001, pD = 0.001, yD = 0, tD = 0; // Derivative gains
 	float rI = 0, pI = 0, yI = 0, tI = 0; // Integral gains
 
 	// Variables for final values
