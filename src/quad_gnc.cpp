@@ -1,23 +1,46 @@
-#include "controller.hpp"
-#include "kbInput.hpp"
+// Add Standard c++ headers
+#include <iostream>
+
+// Add ROS headers
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <rclcpp/rclcpp.hpp>
+
+// Add package headers
+#include <quad_gnc/navigation.hpp>
+
+// If the package name is not defined at compile time then set it to empty
+#ifndef ROS_PACKAGE_NAME
+#define ROS_PACKAGE_NAME ""
+#endif
 
 int main(int argc, char *argv[])
 {
+    // Some initialization.
     rclcpp::init(argc, argv);
 
-    // Initialize controller node
-    rclcpp::Node::SharedPtr controller = std::make_shared<cntrl>();
-    rclcpp::Node::SharedPtr keyboardInput = std::make_shared<kbInput>();
+    // Get location of the package share directory
+    std::string pkgShareDir = ament_index_cpp::get_package_share_directory(ROS_PACKAGE_NAME);
 
-    // Create an executor
-    rclcpp::executors::MultiThreadedExecutor exec;
+    // Initialize the ROS executor
+    rclcpp::executors::MultiThreadedExecutor rosExecutor;
 
-    // Add nodes to the executor
-    exec.add_node(controller);
-    exec.add_node(keyboardInput);
+    // Get a shared pointer for animation node object
+    std::shared_ptr<navigationNode> navigationNodePtr = std::make_shared<navigationNode>();
+    rosExecutor.add_node(navigationNodePtr);
 
-    // Run the executor
-    exec.spin();
+    while(rclcpp::ok())
+    {
+        rosExecutor.spin_some();
+
+        // Get RC input or desired state values
+        // Guidance part of the code will come here
+
+        double roll, pitch, yaw;
+        if (navigationNodePtr->getNewData(roll, pitch, yaw)) // If new state estimates are available
+        { // Send the control signal
+            std::cout << "R: " << roll << "P: " << pitch << "Y: " << yaw << std::endl;
+        }
+    }
 
     // Cleanup
     rclcpp::shutdown();

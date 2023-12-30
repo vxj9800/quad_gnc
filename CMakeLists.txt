@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
-project(quad_gnc)
+
+# Create project and make it's name available to the executables.
+# This will allow the nodes to figure out the name of the package they are in.
+project(quad_gnc C CXX)
+add_compile_definitions(ROS_PACKAGE_NAME="${CMAKE_PROJECT_NAME}")
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -8,47 +12,24 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
-# Add controller node as a target
-add_executable(controller
-  src/controller.cpp
+# Add sources to the target
+add_executable(quad_gnc
+  src/navigation.cpp
+  src/quad_gnc.cpp
 )
-target_include_directories(controller PUBLIC
+target_include_directories(quad_gnc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(controller rclcpp std_msgs geometry_msgs)
-
-# Add kbInput node as a target
-add_executable(kbInput
-  src/kbInput.cpp
-)
-target_include_directories(kbInput PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-target_link_libraries(kbInput
-  ncurses
-)
-ament_target_dependencies(kbInput rclcpp std_msgs)
-
-# Add complementary filter node as a target
-add_executable(cmplFltr
-  src/cmplFltr.cpp
-)
-target_include_directories(cmplFltr PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-ament_target_dependencies(cmplFltr rclcpp std_msgs geometry_msgs)
+ament_target_dependencies(quad_gnc rclcpp sensor_msgs)
 
 install(TARGETS
-  controller
-  kbInput
-  cmplFltr
-  DESTINATION lib/${PROJECT_NAME})
+  quad_gnc
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
