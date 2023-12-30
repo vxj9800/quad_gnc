@@ -12,6 +12,7 @@
   <depend>rclcpp</depend>
   <depend>builtin_interfaces</depend>
   <depend>sensor_msgs</depend>
+  <depend>quad_sim_interfaces</depend>
 
   <!-- Define execution-time dependencies -->
 

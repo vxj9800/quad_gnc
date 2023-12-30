@@ -8,6 +8,7 @@
 // Add package headers
 #include <quad_gnc/guidance.hpp>
 #include <quad_gnc/navigation.hpp>
+#include <quad_gnc/control.hpp>
 
 // If the package name is not defined at compile time then set it to empty
 #ifndef ROS_PACKAGE_NAME
@@ -25,9 +26,13 @@ int main(int argc, char *argv[])
     // Initialize the ROS executor
     rclcpp::executors::MultiThreadedExecutor rosExecutor;
 
-    // Get a shared pointer for animation node object
+    // Get a shared pointer for navigation node object
     std::shared_ptr<navigationNode> navigationNodePtr = std::make_shared<navigationNode>();
     rosExecutor.add_node(navigationNodePtr);
+
+    // Get a shared pointer for control node object
+    std::shared_ptr<controlNode> controlNodePtr = std::make_shared<controlNode>();
+    rosExecutor.add_node(controlNodePtr);
 
     // Initialize joystick
     Joystick js0;
@@ -40,9 +45,18 @@ int main(int argc, char *argv[])
 
     while(rclcpp::ok())
     {
-        rosExecutor.spin_some();
+        // Get all the subscriber functions completed for the navigation node
+        while (!navigationNodePtr->isInSync() && rclcpp::ok())
+        {
+            rosExecutor.spin_some();
+            std::cout << "solverT_ns: " << navigationNodePtr->getTimeStamp() << std::endl;
+        }
 
-        // Check if the simulation should be running or not
+        // Get the state estimates from navigation node
+        double roll, pitch, yaw;
+        navigationNodePtr->getNewEstimate(roll, pitch, yaw);
+
+        // Get quadcopter arming state
         quadArmed = js0.buttonPressed(0) ? 0 : quadArmed; // If button 0 was pressed then quad is not armed
         quadArmed = js0.buttonPressed(1) ? 1 : quadArmed; // If button 1 was pressed then quad is armed
 
@@ -50,14 +64,8 @@ int main(int argc, char *argv[])
         rt = js0.joystickPosition(0);
         yp = js0.joystickPosition(1);
 
-        // Print the joystick states
-        std::cout << "Armed: " << quadArmed << "\tThrottle: " << rt.y << "\tRoll: " << rt.x << "\tPitch: " << yp.y << "\tYaw: " << yp.x << std::endl;
-
-        double roll, pitch, yaw;
-        if (navigationNodePtr->getNewData(roll, pitch, yaw)) // If new state estimates are available and 
-        { // Send the control signal
-            // std::cout << "R: " << roll << "P: " << pitch << "Y: " << yaw << std::endl;
-        }
+        // Compute the control signal and publish it
+        controlNodePtr->armState_PFn(navigationNodePtr->getTimeStamp(), quadArmed);
     }
 
     // Cleanup

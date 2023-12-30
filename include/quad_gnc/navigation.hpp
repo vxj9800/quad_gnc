@@ -18,12 +18,13 @@ public:
     navigationNode();
 
     // Provide new attitude estimates to the user
-    bool getNewData(double &roll, double &pitch, double &yaw);
+    void getNewEstimate(double &roll, double &pitch, double &yaw);
+    int64_t getTimeStamp();
+
+    // Check if data for all subscribers with same time-stamp has been received
+    bool isInSync();
 
 private:
-    // Publishing time in nanoseconds
-    int64_t dtBat_ns, dtBaro_ns, dtImu_ns, dtMag_ns, dtGps_ns;
-
     // Variables for subscribers
     rclcpp::Subscription<builtin_interfaces::msg::Time>::SharedPtr tick_Sub;
     rclcpp::Subscription<sensor_msgs::msg::FluidPressure>::SharedPtr baro_Sub;
@@ -32,7 +33,7 @@ private:
     // rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_Sub;
 
     // Subscriber Callback functions
-    void tick_Scb(builtin_interfaces::msg::Time msg);
+    void tick_SCb(builtin_interfaces::msg::Time msg);
     void baro_SCb(sensor_msgs::msg::FluidPressure msg);
     void imu_SCb(sensor_msgs::msg::Imu msg);
     // void mag_SCb();
@@ -48,10 +49,10 @@ private:
     double alf = 0.98;
 
     // Keep track of last time-stamp
-    int64_t imu_lts, baro_lts, tick_lts;
+    int64_t imu_lts = 0, baro_lts = 0, tick_lts = 0;
 
-    // Specify if there is new data available or not.
-    bool newDataAvailable = false;
+    // Time difference between two samples
+    int64_t sampleDt_ns = 0;
 };
 
 #endif // __NAVIGATION_NODE_HEADER__

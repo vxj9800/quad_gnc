@@ -13,19 +13,21 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(builtin_interfaces REQUIRED)
+find_package(quad_sim_interfaces REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 # Add sources to the target
 add_executable(quad_gnc
   src/guidance.cpp
   src/navigation.cpp
+  src/control.cpp
   src/quad_gnc.cpp
 )
+ament_target_dependencies(quad_gnc rclcpp sensor_msgs quad_sim_interfaces)
 target_include_directories(quad_gnc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(quad_gnc rclcpp sensor_msgs)
 
 install(TARGETS
   quad_gnc

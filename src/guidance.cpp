@@ -41,6 +41,7 @@ void *Joystick::loop(void *obj)
 {
     while (reinterpret_cast<Joystick *>(obj)->active)
         reinterpret_cast<Joystick *>(obj)->readEv();
+    return 0;
 }
 
 void Joystick::readEv()

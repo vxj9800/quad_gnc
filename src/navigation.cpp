@@ -3,7 +3,7 @@
 navigationNode::navigationNode() : Node("navigationNode")
 {
     // Initialize the subscribers
-    tick_Sub = create_subscription<builtin_interfaces::msg::Time>("tick", rclcpp::SensorDataQoS(), std::bind(&navigationNode::tick_Scb, this, std::placeholders::_1));
+    tick_Sub = create_subscription<builtin_interfaces::msg::Time>("tick", rclcpp::SensorDataQoS(), std::bind(&navigationNode::tick_SCb, this, std::placeholders::_1));
     imu_Sub = create_subscription<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS(), std::bind(&navigationNode::imu_SCb, this, std::placeholders::_1));
     baro_Sub = create_subscription<sensor_msgs::msg::FluidPressure>("baro", rclcpp::SensorDataQoS(), std::bind(&navigationNode::baro_SCb, this, std::placeholders::_1));
 }
@@ -26,12 +26,25 @@ void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
     linAccX = msg.linear_acceleration.x;
     linAccY = msg.linear_acceleration.y;
     linAccZ = msg.linear_acceleration.z;
+}
 
-    // Time duration for the new data
-    int64_t newTime = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec;
-    int64_t dt = newTime - imu_lts;
-    imu_lts = dt ? newTime : imu_lts;
+void navigationNode::tick_SCb(builtin_interfaces::msg::Time msg)
+{
+    // Eventually, perform more complex filtering using all the sensor data.
+    // That will need all the sensor data to be received first.
+    // The code here will also say that new data is received and processed,
+    // so that the full gnc code can read the estimated values and pass
+    // those to the controller.
 
+    // Calculate the sampling time
+    sampleDt_ns = msg.sec * 1000000000 + msg.nanosec - tick_lts;
+
+    // Update the last data received time
+    tick_lts = msg.sec * 1000000000 + msg.nanosec;
+}
+
+void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)
+{
     // Estimate body orientation
     double pitchFromAccel = 0;
     double rollFromAccel = 0;
@@ -44,37 +57,19 @@ void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 
     // Complimentary Filter, fuse accelerometer data with gyro integration
     // angle = alf * (angle + gyroscope * dt) + (1 - alf) * accelerometer
-    roll = alf * (roll + (angVelX * dt)) + (1 - alf) * rollFromAccel;
-    pitch = alf * (pitch + (angVelY * dt)) + (1 - alf) * pitchFromAccel;
+    roll = alf * (roll + (angVelX * sampleDt_ns)) + (1 - alf) * rollFromAccel;
+    pitch = alf * (pitch + (angVelY * sampleDt_ns)) + (1 - alf) * pitchFromAccel;
 
     // Yaw cannot be determined from accelerometer, so only gyro is used
-    yaw += angVelY * dt;
-
-    // The above code returns the angle in RADIANS
+    yaw += angVelY * sampleDt_ns;
 }
 
-void navigationNode::tick_Scb(builtin_interfaces::msg::Time msg)
+bool navigationNode::isInSync()
 {
-    // Eventually, perform more complex filtering using all the sensor data.
-    // That will need all the sensor data to be received first.
-    // The code here will also say that new data is received and processed,
-    // so that the full gnc code can read the estimated values and pass
-    // those to the controller.
-
-    // Update the last data received time
-    tick_lts = msg.sec * 1000000000 + msg.nanosec;
-
-    // For now, just set the new data variable as true.
-    newDataAvailable = true;
+    return (tick_lts == imu_lts) && (tick_lts == baro_lts);
 }
 
-bool navigationNode::getNewData(double &roll, double &pitch, double &yaw)
+int64_t navigationNode::getTimeStamp()
 {
-    if (newDataAvailable)
-    {
-        roll = this->roll;
-        pitch = this->pitch;
-        yaw = this->yaw;
-    }
-    return newDataAvailable;
+    return tick_lts;
 }
