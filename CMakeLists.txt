@@ -17,6 +17,7 @@ find_package(sensor_msgs REQUIRED)
 
 # Add sources to the target
 add_executable(quad_gnc
+  src/guidance.cpp
   src/navigation.cpp
   src/quad_gnc.cpp
 )
