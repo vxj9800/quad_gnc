@@ -3,13 +3,17 @@
 navigationNode::navigationNode() : Node("navigationNode")
 {
     // Initialize the subscribers
-    tick_Sub = create_subscription<builtin_interfaces::msg::Time>("tick", rclcpp::SensorDataQoS(), std::bind(&navigationNode::tick_SCb, this, std::placeholders::_1));
     imu_Sub = create_subscription<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS(), std::bind(&navigationNode::imu_SCb, this, std::placeholders::_1));
     baro_Sub = create_subscription<sensor_msgs::msg::FluidPressure>("baro", rclcpp::SensorDataQoS(), std::bind(&navigationNode::baro_SCb, this, std::placeholders::_1));
 }
 
 void navigationNode::baro_SCb(sensor_msgs::msg::FluidPressure msg)
 {
+    // Update time values
+    baroDt_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec - baro_lts;
+    baro_lts += baroDt_ns;
+
+    // Update sensor value
     double p = msg.fluid_pressure / 1000; // Pressure in kPa
 
     // Assuming that the quad will always be in Troposphere,
@@ -19,32 +23,20 @@ void navigationNode::baro_SCb(sensor_msgs::msg::FluidPressure msg)
 
 void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 {
+    // Update time values
+    imuDt_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec - imu_lts;
+    imu_lts += imuDt_ns;
+
+    // Update angular velocity
     angVelX = msg.angular_velocity.x;
     angVelY = msg.angular_velocity.y;
     angVelZ = msg.angular_velocity.z;
 
+    // Update linear acceleration
     linAccX = msg.linear_acceleration.x;
     linAccY = msg.linear_acceleration.y;
     linAccZ = msg.linear_acceleration.z;
-}
 
-void navigationNode::tick_SCb(builtin_interfaces::msg::Time msg)
-{
-    // Eventually, perform more complex filtering using all the sensor data.
-    // That will need all the sensor data to be received first.
-    // The code here will also say that new data is received and processed,
-    // so that the full gnc code can read the estimated values and pass
-    // those to the controller.
-
-    // Calculate the sampling time
-    sampleDt_ns = msg.sec * 1000000000 + msg.nanosec - tick_lts;
-
-    // Update the last data received time
-    tick_lts = msg.sec * 1000000000 + msg.nanosec;
-}
-
-void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)
-{
     // Estimate body orientation
     double pitchFromAccel = 0;
     double rollFromAccel = 0;
@@ -57,19 +49,22 @@ void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)
 
     // Complimentary Filter, fuse accelerometer data with gyro integration
     // angle = alf * (angle + gyroscope * dt) + (1 - alf) * accelerometer
-    roll = alf * (roll + (angVelX * sampleDt_ns)) + (1 - alf) * rollFromAccel;
-    pitch = alf * (pitch + (angVelY * sampleDt_ns)) + (1 - alf) * pitchFromAccel;
+    roll = alf * (roll + (angVelX * imuDt_ns / 1e9)) + (1 - alf) * rollFromAccel;
+    pitch = alf * (pitch + (angVelY * imuDt_ns / 1e9)) + (1 - alf) * pitchFromAccel;
 
     // Yaw cannot be determined from accelerometer, so only gyro is used
-    yaw += angVelY * sampleDt_ns;
+    yaw += angVelY * imuDt_ns / 1e9;
 }
 
-bool navigationNode::isInSync()
+void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)
 {
-    return (tick_lts == imu_lts) && (tick_lts == baro_lts);
+    roll = this->roll;
+    pitch = this->pitch;
+    yaw = this->yaw;
 }
 
 int64_t navigationNode::getTimeStamp()
 {
-    return tick_lts;
+    // For now, return imu time-stamp since it is supposed to work at the highest rate
+    return imu_lts;
 }

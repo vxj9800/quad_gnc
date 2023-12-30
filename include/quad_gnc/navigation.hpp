@@ -19,21 +19,18 @@ public:
 
     // Provide new attitude estimates to the user
     void getNewEstimate(double &roll, double &pitch, double &yaw);
-    int64_t getTimeStamp();
 
-    // Check if data for all subscribers with same time-stamp has been received
-    bool isInSync();
+    // Get the latest time-stamp out of all the sensors
+    int64_t getTimeStamp();
 
 private:
     // Variables for subscribers
-    rclcpp::Subscription<builtin_interfaces::msg::Time>::SharedPtr tick_Sub;
     rclcpp::Subscription<sensor_msgs::msg::FluidPressure>::SharedPtr baro_Sub;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_Sub;
     // rclcpp::Subscription<sensor_msgs::msg::MagneticField>::SharedPtr mag_Sub;
     // rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr gps_Sub;
 
     // Subscriber Callback functions
-    void tick_SCb(builtin_interfaces::msg::Time msg);
     void baro_SCb(sensor_msgs::msg::FluidPressure msg);
     void imu_SCb(sensor_msgs::msg::Imu msg);
     // void mag_SCb();
@@ -49,10 +46,10 @@ private:
     double alf = 0.98;
 
     // Keep track of last time-stamp
-    int64_t imu_lts = 0, baro_lts = 0, tick_lts = 0;
+    int64_t imu_lts = 0, baro_lts = 0;
 
-    // Time difference between two samples
-    int64_t sampleDt_ns = 0;
+    // Variables to keep track of sampling time
+    int64_t imuDt_ns = 0, baroDt_ns = 0;
 };
 
 #endif // __NAVIGATION_NODE_HEADER__

@@ -45,13 +45,6 @@ int main(int argc, char *argv[])
 
     while(rclcpp::ok())
     {
-        // Get all the subscriber functions completed for the navigation node
-        while (!navigationNodePtr->isInSync() && rclcpp::ok())
-        {
-            rosExecutor.spin_some();
-            std::cout << "solverT_ns: " << navigationNodePtr->getTimeStamp() << std::endl;
-        }
-
         // Get the state estimates from navigation node
         double roll, pitch, yaw;
         navigationNodePtr->getNewEstimate(roll, pitch, yaw);
