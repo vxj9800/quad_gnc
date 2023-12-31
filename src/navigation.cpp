@@ -52,8 +52,8 @@ void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
     roll = alf * (roll + (angVelX * imuDt_ns * 1e-9)) + (1 - alf) * rollFromAccel;
     pitch = alf * (pitch + (angVelY * imuDt_ns * 1e-9)) + (1 - alf) * pitchFromAccel;
 
-    // Yaw cannot be determined from accelerometer, so only gyro is used
-    yaw += angVelZ * imuDt_ns * 1e-9;
+    // For current controller implementation, the yaw rate matters only
+    yaw = angVelZ;
 }
 
 void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)

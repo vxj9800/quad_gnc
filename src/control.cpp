@@ -33,8 +33,8 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         float eR_dot, eP_dot, eY_dot, eT_dot;            // Roll, pitch, yaw and thrust error rates
 
         // Define PID gains
-        float rP = 0.01, pP = 0.01, yP = 0, tP = 0.8; // Proportional gains
-        float rD = 0.002, pD = 0.002, yD = 0, tD = 0;     // Derivative gains
+        float rP = 0.01, pP = 0.01, yP = 0.5, tP = 0.8; // Proportional gains
+        float rD = 0.002, pD = 0.002, yD = 0.002, tD = 0;     // Derivative gains
         float rI = 0, pI = 0, yI = 0, tI = 0;             // Integral gains
 
         // Variables for final values
@@ -62,6 +62,9 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         thrust = tP * eT;
         roll = rP * eR + rD * eR_dot + rI * eR_int;
         pitch = pP * eP + pD * eP_dot + pI * eP_int;
+        yaw = yP * eY + yD * eY_dot + yI * eY_int;
+
+        std::cout << yaw << std::endl;
 
         // Update the last value
         eR_prev = eR;
