@@ -114,8 +114,8 @@ void Joystick::getTRPY(double &thrust, double &roll, double &pitch, double &yaw)
 
 bool Joystick::getArmState()
 {
-    bool quadArmed;
-    quadArmed = buttonPressed(0) ? 0 : quadArmed; // If button 0 was pressed then quad is not armed
+    static bool quadArmed = false;
     quadArmed = buttonPressed(1) ? 1 : quadArmed; // If button 1 was pressed then quad is armed
+    quadArmed = buttonPressed(0) ? 0 : quadArmed; // If button 0 was pressed then quad is not armed
     return quadArmed;
 }

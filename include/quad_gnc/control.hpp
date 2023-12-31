@@ -11,13 +11,17 @@
 class controlNode : public rclcpp::Node
 {
 public:
-    controlNode();
+    // Constructor with controlDt
+    controlNode(int64_t motVoltsDt_ns);
 
     // Define callback functions for pubs and subs
     void armState_PFn(const int64_t &timeStamp_ns, const bool &armState);
     void motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<double> &currAtt, const std::vector<double> &desAtt);
 
 private:
+    // Restrict default constructor
+    controlNode();
+
     // Variables for publishers
     rclcpp::Publisher<quad_sim_interfaces::msg::ArmState>::SharedPtr armState_Pub;
     rclcpp::Publisher<quad_sim_interfaces::msg::QuadESC>::SharedPtr motVolts_Pub;

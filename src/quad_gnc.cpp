@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     rosExecutor.add_node(navigationNodePtr);
 
     // Get a shared pointer for control node object
-    std::shared_ptr<controlNode> controlNodePtr = std::make_shared<controlNode>();
+    std::shared_ptr<controlNode> controlNodePtr = std::make_shared<controlNode>(10000000); // 10ms
     rosExecutor.add_node(controlNodePtr);
 
     // Initialize joystick
@@ -45,6 +45,9 @@ int main(int argc, char *argv[])
 
     while(rclcpp::ok())
     {
+        // Let the callbacks run
+        rosExecutor.spin_some();
+
         // Get the state estimates from navigation node
         std::vector<double> currAtt(4);
         navigationNodePtr->getNewEstimate(currAtt[1], currAtt[2], currAtt[3]);

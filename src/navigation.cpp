@@ -10,7 +10,7 @@ navigationNode::navigationNode() : Node("navigationNode")
 void navigationNode::baro_SCb(sensor_msgs::msg::FluidPressure msg)
 {
     // Update time values
-    baroDt_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec - baro_lts;
+    baroDt_ns = msg.header.stamp.sec * (int64_t)1000000000 + msg.header.stamp.nanosec - baro_lts;
     baro_lts += baroDt_ns;
 
     // Update sensor value
@@ -24,7 +24,7 @@ void navigationNode::baro_SCb(sensor_msgs::msg::FluidPressure msg)
 void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 {
     // Update time values
-    imuDt_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec - imu_lts;
+    imuDt_ns = msg.header.stamp.sec * (int64_t)1000000000 + msg.header.stamp.nanosec - imu_lts;
     imu_lts += imuDt_ns;
 
     // Update angular velocity
