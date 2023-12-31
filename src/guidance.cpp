@@ -99,3 +99,23 @@ bool Joystick::buttonPressed(int n)
     }
     return buttonState;
 }
+
+void Joystick::getTRPY(double &thrust, double &roll, double &pitch, double &yaw)
+{
+    // Get RC input or desired state values
+    joystick_position rt = joystickPosition(0), yp = joystickPosition(1);
+
+    // Convert values to actual roll and pitch values
+    thrust = (rt.y + 1) / 2; // Limit the value in 0 to 1 range
+    roll = rt.x * rollRange;
+    pitch = yp.y * pitchRange;
+    yaw = yp.x;
+}
+
+bool Joystick::getArmState()
+{
+    bool quadArmed;
+    quadArmed = buttonPressed(0) ? 0 : quadArmed; // If button 0 was pressed then quad is not armed
+    quadArmed = buttonPressed(1) ? 1 : quadArmed; // If button 1 was pressed then quad is armed
+    return quadArmed;
+}

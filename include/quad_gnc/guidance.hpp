@@ -39,6 +39,9 @@ private:
     __u8 axes;
     __u8 buttons;
     char name[256];
+    joystick_position joystickPosition(int n);
+    bool buttonPressed(int n);
+    float rollRange = M_PI / 10, pitchRange = M_PI / 10; // Range for desired roll and pitch angles, set to ~18Deg for now
 
 protected:
 public:
@@ -46,7 +49,7 @@ public:
     ~Joystick();
     static void *loop(void *obj);
     void readEv();
-    joystick_position joystickPosition(int n);
-    bool buttonPressed(int n);
+    void getTRPY(double &thrust, double &roll, double &pitch, double &yaw);
+    bool getArmState();
 };
 #endif // __GUIDANCE_HEADER__

@@ -27,9 +27,6 @@ private:
 
     // Variables to keep track of last publication time
     int64_t motVolts_lpt = 0;
-
-    // Other variables for the controller
-    float rollRange = M_PI / 10, pitchRange = M_PI / 10; // Range for desired roll and pitch angles, set to ~18Deg for now
 };
 
 #endif // __CONTROL_NODE_HEADER__

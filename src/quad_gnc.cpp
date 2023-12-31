@@ -46,18 +46,18 @@ int main(int argc, char *argv[])
     while(rclcpp::ok())
     {
         // Get the state estimates from navigation node
-        double roll, pitch, yaw;
-        navigationNodePtr->getNewEstimate(roll, pitch, yaw);
+        std::vector<double> currAtt(4);
+        navigationNodePtr->getNewEstimate(currAtt[1], currAtt[2], currAtt[3]);
 
         // Get quadcopter arming state
-        quadArmed = js0.buttonPressed(0) ? 0 : quadArmed; // If button 0 was pressed then quad is not armed
-        quadArmed = js0.buttonPressed(1) ? 1 : quadArmed; // If button 1 was pressed then quad is armed
+        quadArmed = js0.getArmState();
 
-        // Get RC input or desired state values
-        rt = js0.joystickPosition(0);
-        yp = js0.joystickPosition(1);
+        // Get desired states
+        std::vector<double> desAtt(4);
+        js0.getTRPY(desAtt[0], desAtt[1], desAtt[2], desAtt[3]);
 
         // Compute the control signal and publish it
+        controlNodePtr->motVolts_PFn(navigationNodePtr->getTimeStamp(), currAtt, desAtt);
         controlNodePtr->armState_PFn(navigationNodePtr->getTimeStamp(), quadArmed);
     }
 

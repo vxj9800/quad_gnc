@@ -40,8 +40,8 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         float roll = 0, pitch = 0, yaw = 0, thrust = 0;
 
         // Compute current errors
-        eR = (desAtt[1] - currAtt[1]) / 2 / rollRange;
-        eP = (desAtt[2] - currAtt[2]) / 2 / pitchRange;
+        eR = desAtt[1] - currAtt[1];
+        eP = desAtt[2] - currAtt[2];
         eY = desAtt[3] - currAtt[3];
         eT = desAtt[0];
 
