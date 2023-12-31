@@ -41,7 +41,7 @@ private:
     char name[256];
     joystick_position joystickPosition(int n);
     bool buttonPressed(int n);
-    float rollRange = M_PI / 10, pitchRange = M_PI / 10; // Range for desired roll and pitch angles, set to ~18Deg for now
+    float rollRange = M_PI / 20, pitchRange = M_PI / 20; // Range for desired roll and pitch angles, set to ~18Deg for now
 
 protected:
 public:
