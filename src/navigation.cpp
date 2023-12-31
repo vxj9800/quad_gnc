@@ -43,8 +43,8 @@ void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 
     // Extract roll and pitch from the accelerometer
     // These formulae assume that z-axis point away from the earth
-    pitchFromAccel = atan2(-linAccX, sqrt(pow(linAccY, 2) + pow(linAccZ, 2)));
-    rollFromAccel = atan2(linAccY, sqrt(pow(linAccX, 2) + pow(linAccZ, 2)));
+    pitchFromAccel = atan2(linAccX, sqrt(pow(linAccY, 2) + pow(linAccZ, 2)));
+    rollFromAccel = atan2(-linAccY, sqrt(pow(linAccX, 2) + pow(linAccZ, 2)));
     // rollFromAccel = atan2(linAccY, linAccZ);
 
     // Complimentary Filter, fuse accelerometer data with gyro integration
@@ -54,24 +54,6 @@ void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 
     // Yaw cannot be determined from accelerometer, so only gyro is used
     yaw += angVelZ * imuDt_ns * 1e-9;
-
-    std::cout << roll << '\t' << pitch << '\t' << yaw << std::endl;
-
-    // // Convert quaternion to euler angles to tune controller
-    // // roll (x-axis rotation)
-    // double sinr_cosp = 2 * (msg.orientation.w * msg.orientation.x + msg.orientation.y * msg.orientation.z);
-    // double cosr_cosp = 1 - 2 * (msg.orientation.x * msg.orientation.x + msg.orientation.y * msg.orientation.y);
-    // roll = std::atan2(sinr_cosp, cosr_cosp);
-
-    // // pitch (y-axis rotation)
-    // double sinp = std::sqrt(1 + 2 * (msg.orientation.w * msg.orientation.y - msg.orientation.x * msg.orientation.z));
-    // double cosp = std::sqrt(1 - 2 * (msg.orientation.w * msg.orientation.y - msg.orientation.x * msg.orientation.z));
-    // pitch = 2 * std::atan2(sinp, cosp) - M_PI / 2;
-
-    // // yaw (z-axis rotation)
-    // double siny_cosp = 2 * (msg.orientation.w * msg.orientation.z + msg.orientation.x * msg.orientation.y);
-    // double cosy_cosp = 1 - 2 * (msg.orientation.y * msg.orientation.y + msg.orientation.z * msg.orientation.z);
-    // yaw = std::atan2(siny_cosp, cosy_cosp);
 }
 
 void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)
