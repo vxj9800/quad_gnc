@@ -109,7 +109,7 @@ void Joystick::getTRPY(double &thrust, double &roll, double &pitch, double &yaw)
     thrust = (rt.y + 1) / 2; // Limit the value in 0 to 1 range
     roll = rt.x * rollRange;
     pitch = yp.y * pitchRange;
-    yaw = yp.x;
+    yaw = -yp.x; // Minus sign is applied because left position on joystick should represent ccw rotation
 }
 
 bool Joystick::getArmState()

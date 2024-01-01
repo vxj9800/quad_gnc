@@ -64,8 +64,6 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         pitch = pP * eP + pD * eP_dot + pI * eP_int;
         yaw = yP * eY + yD * eY_dot + yI * eY_int;
 
-        std::cout << yaw << std::endl;
-
         // Update the last value
         eR_prev = eR;
         eP_prev = eP;
