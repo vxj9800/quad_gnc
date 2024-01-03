@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
         js0.getTRPY(desAtt[0], desAtt[1], desAtt[2], desAtt[3]);
 
         // Compute the control signal and publish it
-        controlNodePtr->motVolts_PFn(navigationNodePtr->getTimeStamp(), currAtt, desAtt);
-        controlNodePtr->armState_PFn(navigationNodePtr->getTimeStamp(), quadArmed);
+        controlNodePtr->motVolts_PFn(currAtt, desAtt);
+        controlNodePtr->armState_PFn(quadArmed);
     }
 
     // Cleanup

@@ -1,6 +1,6 @@
 #include <quad_gnc/navigation.hpp>
 
-navigationNode::navigationNode() : Node("navigationNode")
+navigationNode::navigationNode() : Node("navigationNode"), imu_lts(0, 0, RCL_ROS_TIME), baro_lts(0, 0, RCL_ROS_TIME), imuDt(0, 1e6), baroDt(0, 1e6)
 {
     // Initialize the subscribers
     imu_Sub = create_subscription<sensor_msgs::msg::Imu>("imu", rclcpp::SensorDataQoS(), std::bind(&navigationNode::imu_SCb, this, std::placeholders::_1));
@@ -10,8 +10,8 @@ navigationNode::navigationNode() : Node("navigationNode")
 void navigationNode::baro_SCb(sensor_msgs::msg::FluidPressure msg)
 {
     // Update time values
-    baroDt_ns = msg.header.stamp.sec * (int64_t)1000000000 + msg.header.stamp.nanosec - baro_lts;
-    baro_lts += baroDt_ns;
+    baroDt = rclcpp::Time(msg.header.stamp) - baro_lts;
+    baro_lts = msg.header.stamp;
 
     // Update sensor value
     double p = msg.fluid_pressure / 1000; // Pressure in kPa
@@ -24,8 +24,8 @@ void navigationNode::baro_SCb(sensor_msgs::msg::FluidPressure msg)
 void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 {
     // Update time values
-    imuDt_ns = msg.header.stamp.sec * (int64_t)1000000000 + msg.header.stamp.nanosec - imu_lts;
-    imu_lts += imuDt_ns;
+    imuDt = rclcpp::Time(msg.header.stamp) - imu_lts;
+    imu_lts = msg.header.stamp;
 
     // Update angular velocity
     angVelX = msg.angular_velocity.x;
@@ -49,8 +49,8 @@ void navigationNode::imu_SCb(sensor_msgs::msg::Imu msg)
 
     // Complimentary Filter, fuse accelerometer data with gyro integration
     // angle = alf * (angle + gyroscope * dt) + (1 - alf) * accelerometer
-    roll = alf * (roll + (angVelX * imuDt_ns * 1e-9)) + (1 - alf) * rollFromAccel;
-    pitch = alf * (pitch + (angVelY * imuDt_ns * 1e-9)) + (1 - alf) * pitchFromAccel;
+    roll = alf * (roll + (angVelX * imuDt.seconds())) + (1 - alf) * rollFromAccel;
+    pitch = alf * (pitch + (angVelY * imuDt.seconds())) + (1 - alf) * pitchFromAccel;
 
     // For current controller implementation, the yaw rate matters only
     yaw = angVelZ;
@@ -61,10 +61,4 @@ void navigationNode::getNewEstimate(double &roll, double &pitch, double &yaw)
     roll = this->roll;
     pitch = this->pitch;
     yaw = this->yaw;
-}
-
-int64_t navigationNode::getTimeStamp()
-{
-    // For now, return imu time-stamp since it is supposed to work at the highest rate
-    return imu_lts;
 }

@@ -1,30 +1,32 @@
 #include <quad_gnc/control.hpp>
 
-controlNode::controlNode(int64_t motVoltsDt_ns) : Node("controlNode"), motVoltsDt_ns(motVoltsDt_ns)
+controlNode::controlNode(int64_t motVoltsDt_ns) : Node("controlNode"), motVoltsDt(motVoltsDt_ns / 1000000000, motVoltsDt_ns % 1000000000), motVolts_lpt(0, 0, RCL_ROS_TIME)
 {
     // Setup publishers and subscribers
     armState_Pub = create_publisher<quad_sim_interfaces::msg::ArmState>("armed", rclcpp::SensorDataQoS());
     motVolts_Pub = create_publisher<quad_sim_interfaces::msg::QuadESC>("motEsc", rclcpp::SensorDataQoS());
 }
 
-void controlNode::armState_PFn(const int64_t &timeStamp, const bool &armState)
+void controlNode::armState_PFn(const bool &armState)
 {
     // Create message variable
     quad_sim_interfaces::msg::ArmState msg;
 
     // Add data to the message
-    msg.header.stamp.sec = timeStamp / 1000000000;
-    msg.header.stamp.nanosec = timeStamp % 1000000000;
+    msg.header.stamp = now();
     msg.armed = armState;
 
     // Publish the message
     armState_Pub->publish(msg);
 }
 
-void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<double> &currAtt, const std::vector<double> &desAtt)
+void controlNode::motVolts_PFn(const std::vector<double> &currAtt, const std::vector<double> &desAtt)
 {
+    // Get current time
+    rclcpp::Time timeNow = now();
+
     // Check if enough time has passed
-    if ((timeStamp_ns - motVolts_lpt) >= motVoltsDt_ns)
+    if ((motVolts_lpt + motVoltsDt) <= timeNow)
     {
         // Variables to store errors, error rates and error integrals
         static float eR_prev, eP_prev, eY_prev, eT_prev; // Previous roll, pitch, yaw and thrust errors
@@ -47,16 +49,16 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         eT = desAtt[0];
 
         // Compute error rates
-        eR_dot = (eR - eR_prev) / (motVoltsDt_ns * 1e-9);
-        eP_dot = (eP - eP_prev) / (motVoltsDt_ns * 1e-9);
-        eY_dot = (eY - eY_prev) / (motVoltsDt_ns * 1e-9);
-        eT_dot = (eT - eT_prev) / (motVoltsDt_ns * 1e-9);
+        eR_dot = (eR - eR_prev) / motVoltsDt.seconds();
+        eP_dot = (eP - eP_prev) / motVoltsDt.seconds();
+        eY_dot = (eY - eY_prev) / motVoltsDt.seconds();
+        eT_dot = (eT - eT_prev) / motVoltsDt.seconds();
 
         // Integrate error over time
-        eR_int += eR * (motVoltsDt_ns * 1e-9);
-        eP_int += eP * (motVoltsDt_ns * 1e-9);
-        eY_int += eY * (motVoltsDt_ns * 1e-9);
-        eT_int += eT * (motVoltsDt_ns * 1e-9);
+        eR_int += eR * motVoltsDt.seconds();
+        eP_int += eP * motVoltsDt.seconds();
+        eY_int += eY * motVoltsDt.seconds();
+        eT_int += eT * motVoltsDt.seconds();
 
         // Implement control laws
         thrust = tP * eT;
@@ -74,8 +76,7 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         quad_sim_interfaces::msg::QuadESC msg;
 
         // Update the message header
-        msg.header.stamp.sec = timeStamp_ns / 1000000000;
-        msg.header.stamp.nanosec = timeStamp_ns % 1000000000;
+        msg.header.stamp = timeNow;
 
         // Load the data in motVoltages vector
         msg.mot_b = (thrust - pitch + roll + yaw); // Add fl value
@@ -97,6 +98,6 @@ void controlNode::motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<do
         motVolts_Pub->publish(msg);
 
         // Update last publication time
-        motVolts_lpt = timeStamp_ns;
+        motVolts_lpt = timeNow;
     }
 }

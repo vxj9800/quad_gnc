@@ -15,8 +15,8 @@ public:
     controlNode(int64_t motVoltsDt_ns);
 
     // Define callback functions for pubs and subs
-    void armState_PFn(const int64_t &timeStamp_ns, const bool &armState);
-    void motVolts_PFn(const int64_t &timeStamp_ns, const std::vector<double> &currAtt, const std::vector<double> &desAtt);
+    void armState_PFn(const bool &armState);
+    void motVolts_PFn(const std::vector<double> &currAtt, const std::vector<double> &desAtt);
 
 private:
     // Restrict default constructor
@@ -27,10 +27,10 @@ private:
     rclcpp::Publisher<quad_sim_interfaces::msg::QuadESC>::SharedPtr motVolts_Pub;
 
     // Variables to maintain publication time
-    int64_t motVoltsDt_ns = 0;
+    rclcpp::Duration motVoltsDt;
 
     // Variables to keep track of last publication time
-    int64_t motVolts_lpt = 0;
+    rclcpp::Time motVolts_lpt;
 };
 
 #endif // __CONTROL_NODE_HEADER__
